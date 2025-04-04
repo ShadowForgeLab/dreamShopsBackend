@@ -1,5 +1,6 @@
 package com.project.dreamshops.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,6 +18,7 @@ public class Image {
     private Long id;
     private String filename;
     private String filetype;
+    @JsonIgnore
     @Lob
     private Blob image;
     private String downloadUrl;

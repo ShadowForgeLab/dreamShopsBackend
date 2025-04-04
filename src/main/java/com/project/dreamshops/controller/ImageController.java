@@ -26,30 +26,39 @@ public class ImageController {
 
 
     @PostMapping("/upload")
-    public ResponseEntity<String> saveImages(@RequestParam List<MultipartFile> files, @RequestParam Long productId) {
+    public ResponseEntity<?> saveImages(@RequestParam List<MultipartFile> files, @RequestParam Long productId) {
 
         try {
             List<ImageDto> imageDtos = imageService.saveImage(files, productId);
-            return new ResponseEntity<>("File upload success ! ", HttpStatus.OK);
+            return new ResponseEntity<>(imageDtos, HttpStatus.OK);
         } catch (IOException | SQLException e) {
             System.out.println(e.getMessage());
             return new ResponseEntity<>("Upload Failed!", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @GetMapping("image/download/{imageId}")
-    public ResponseEntity<Resource> downloadImage(@PathVariable Long ImageId) {
+    @GetMapping("/download/{imageId}")
+    public ResponseEntity<Resource> downloadImage(@PathVariable Long imageId) {
         try {
-            Image image = imageService.getImageById(ImageId);
-            ByteArrayResource resource = new ByteArrayResource(image.getImage().getBytes(1L, (int) image.getImage().length()));
+            Image image = imageService.getImageById(imageId);
 
-            return ResponseEntity.ok().contentType(MediaType.parseMediaType(image.getFiletype()))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment:filename=\"" + image.getFilename() + "\"")
+            ByteArrayResource resource = new ByteArrayResource(
+                    image.getImage().getBytes(1L, (int) image.getImage().length())
+            );
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(image.getFiletype()))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + image.getFilename() + "\"")
                     .body(resource);
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace(); // You can use a logger instead
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
         }
-        return null;
     }
 
 
